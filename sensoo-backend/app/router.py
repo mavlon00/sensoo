@@ -1,8 +1,5 @@
 import json
-from datetime import datetime, timezone
 from typing import Any, List
-from uuid import uuid4
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
@@ -11,12 +8,8 @@ from app.ai_router import ai_router
 from app.db import get_session
 from app.models import (
     FeedItemResponse,
-    ConversationCreate,
-    ConversationResponse,
     ProductCode,
     ProductCodeCreate,
-    ReportCreate,
-    ReportResponse,
     ScanRequest,
     ScanResponse,
     ScanTelemetryRecord,
@@ -25,10 +18,6 @@ from app.models import (
 router = APIRouter(prefix="/api/v1", tags=["sensoo"])
 router.include_router(ai_router)
 verification_action = VerificationAction()
-
-# Simple in-memory store for the sprint (replace with DB later).
-REPORTS = []
-CONVERSATIONS = []
 
 
 
@@ -90,52 +79,6 @@ def get_feed(
             )
         )
     return feed_items
-
-
-@router.post("/reports", response_model=ReportResponse)
-def create_report(body: ReportCreate) -> ReportResponse:
-    """Submit a NAFDAC-style counterfeit report."""
-    case_id = f"CASE-SENSOO-{uuid4().hex[:8].upper()}"
-    report = {
-        "case_id": case_id,
-        "code": body.code,
-        "seller_name": body.seller_name,
-        "location": body.location,
-        "description": body.description,
-        "lat": body.lat,
-        "lng": body.lng,
-        "device_id": body.device_id,
-        "image_url": body.image_url,
-        "status": "Under Review",
-        "created_at": datetime.now(timezone.utc).isoformat(),
-    }
-    REPORTS.append(report)
-    return ReportResponse(
-        success=True,
-        case_id=case_id,
-        message="Report submitted successfully. NAFDAC Sentinel will review it.",
-    )
-
-
-@router.post("/conversations", response_model=ConversationResponse)
-def create_conversation(body: ConversationCreate) -> ConversationResponse:
-    """Save an AI chat history message."""
-    session_id = body.session_id or f"sess-{uuid4().hex[:10]}"
-    item = {
-        "id": len(CONVERSATIONS) + 1,
-        "user_id": body.user_id,
-        "role": body.role,
-        "message": body.message,
-        "session_id": session_id,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-    }
-    CONVERSATIONS.append(item)
-    return ConversationResponse(
-        success=True,
-        id=item["id"],
-        session_id=session_id,
-        message="Conversation message saved",
-    )
 
 
 @router.get("/health")

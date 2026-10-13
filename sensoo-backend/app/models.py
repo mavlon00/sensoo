@@ -73,34 +73,3 @@ class FeedItemResponse(BaseModel):
     created_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
-
-
-class ReportCreate(BaseModel):
-    code: Optional[str] = None
-    seller_name: Optional[str] = None
-    location: Optional[str] = None
-    description: str
-    lat: Optional[float] = None
-    lng: Optional[float] = None
-    device_id: Optional[str] = "UNKNOWN"
-    image_url: Optional[str] = None
-
-
-class ReportResponse(BaseModel):
-    success: bool
-    case_id: str
-    message: str
-
-
-class ConversationCreate(BaseModel):
-    user_id: Optional[str] = "anonymous"
-    role: str = "user"
-    message: str
-    session_id: Optional[str] = None
-
-
-class ConversationResponse(BaseModel):
-    success: bool
-    id: int
-    session_id: str
-    message: str
